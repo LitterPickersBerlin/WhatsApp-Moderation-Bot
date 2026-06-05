@@ -1,0 +1,43 @@
+{
+  "name": "whatsapp-group-moderator",
+  "version": "1.0.31",
+  "description": "Self-hosted WhatsApp group moderation bot with spam detection, keyword alerts, and a web dashboard",
+  "main": "dist/index.js",
+  "scripts": {
+    "build": "tsc",
+    "dev": "ts-node src/index.ts",
+    "migrate": "ts-node src/migrate.ts",
+    "analyse": "ts-node src/analyse.ts",
+    "start": "npm run build && node dist/index.js",
+    "delete-msg": "ts-node src/scripts/delete-message.ts",
+    "test": "jest",
+    "prepare": "husky"
+  },
+  "keywords": ["whatsapp", "bot", "moderation", "spam"],
+  "author": "Rhys Bowles",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/LitterPickersBerlin/WhatsApp-Moderation-Bot"
+  },
+  "homepage": "https://github.com/LitterPickersBerlin/WhatsApp-Moderation-Bot#readme",
+  "type": "commonjs",
+  "dependencies": {
+    "@noble/hashes": "^2.0.1",
+    "@types/pg": "^8.20.0",
+    "@whiskeysockets/baileys": "^7.0.0-rc.9",
+    "dotenv": "^17.4.2",
+    "pg": "^8.20.0",
+    "qrcode-terminal": "^0.12.0"
+  },
+  "devDependencies": {
+    "@types/jest": "^30.0.0",
+    "@types/node": "^25.5.0",
+    "@types/qrcode-terminal": "^0.12.2",
+    "husky": "^9.1.7",
+    "jest": "^30.3.0",
+    "ts-jest": "^29.4.6",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.9.3"
+  }
+}

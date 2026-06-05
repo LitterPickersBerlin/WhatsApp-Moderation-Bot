@@ -1,0 +1,21 @@
+node_modules/
+
+# Local config — copy the .example files and fill in values
+.env
+bot.config.json
+
+# WhatsApp auth session
+auth/
+
+# Runtime data (scores, subscriptions, group names)
+data/
+
+# Compiled output
+dist/
+
+# Runtime state (legacy pre-database files)
+member-state.json
+offences.json
+
+# Claude Code session data
+.claude/

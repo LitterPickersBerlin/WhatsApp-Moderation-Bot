@@ -1,0 +1,27 @@
+{
+  "spamKeywords": [
+    "bitcoin", "crypto", "forex", "investment",
+    "nft", "binance", "coinbase", "stocks"
+  ],
+  "alertGroups": [
+    {
+      "jid": "120363000000000001@g.us",
+      "name": "Example group",
+      "emoji": "🍎",
+      "inviteLink": "https://chat.whatsapp.com/your-invite-link"
+    },
+    {
+      "jid": "120363000000000002@g.us",
+      "name": "Admin-only test group",
+      "emoji": "🧪",
+      "inviteLink": "https://chat.whatsapp.com/your-invite-link",
+      "adminOnly": true
+    }
+  ],
+  "groupNetworks": {
+    "MY_COMMUNITY": [
+      "120363000000000001@g.us",
+      "120363000000000002@g.us"
+    ]
+  }
+}
