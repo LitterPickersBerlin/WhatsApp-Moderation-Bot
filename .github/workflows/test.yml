@@ -2,7 +2,7 @@ name: Tests
 
 on:
   push:
-    branches: [main, master, feat/open-sourcing]
+    branches: [main, master]
   pull_request:
     branches: [main, master]
 
@@ -22,6 +22,9 @@ jobs:
 
       - name: Install dependencies
         run: npm ci
+
+      - name: Create bot config
+        run: cp bot.config.example.json bot.config.json
 
       - name: Type check
         run: npx tsc --noEmit
