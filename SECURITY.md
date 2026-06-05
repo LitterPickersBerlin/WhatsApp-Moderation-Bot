@@ -13,8 +13,8 @@ You'll receive a response within 72 hours. Once confirmed, a fix will be release
 
 ## Privacy notes for deployers
 
-- WhatsApp JIDs are SHA-256 hashed before database storage — the DB does not contain phone numbers
-- Phone numbers are truncated to country code only in stored records
-- Display names are stored in plaintext — consider this if deploying for others
-- All records auto-purge after 90 days
-- `NUMBERS_TO_NOTIFY` and `ADMIN_NUMBERS` are sensitive — keep your `.env` out of version control
+- Spam scores are stored with SHA-256 hashed JIDs — no phone numbers in storage
+- Keyword subscriptions store a raw WhatsApp JID alongside the hashed one — this is required to deliver alert DMs and cannot be avoided
+- No display names, phone numbers, or user profiles are stored
+- Subscriptions expire after 30 days (expired entries are ignored but not deleted)
+- `NUMBERS_TO_NOTIFY` and `ADMIN_NUMBERS` contain real phone numbers — keep your `.env` out of version control

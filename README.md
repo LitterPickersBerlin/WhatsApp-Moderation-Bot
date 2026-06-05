@@ -179,11 +179,11 @@ After sending `/alert`, the bot replies with a group picker. React with the grou
 
 ## Privacy
 
-- WhatsApp JIDs are SHA-256 hashed before storage — the database does not contain phone numbers
-- Phone numbers are truncated to country code only
-- Display names are stored in plaintext (consider this if deploying for others)
-- All records auto-purge after 90 days
-- Users can be fully erased via the dashboard (right to erasure)
+- **Spam scores** are stored with SHA-256 hashed JIDs — no phone numbers
+- **Keyword subscriptions** store a hashed JID for deduplication and a raw WhatsApp JID to deliver alert DMs — the raw JID is necessary to send messages and is not avoidable
+- No display names, phone numbers, or user profiles are stored anywhere
+- Subscriptions expire after 30 days — expired entries are ignored but not deleted from storage
+- `NUMBERS_TO_NOTIFY` and `ADMIN_NUMBERS` contain real phone numbers — keep your `.env` out of version control
 
 ---
 
