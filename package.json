@@ -8,7 +8,7 @@
     "dev": "ts-node src/index.ts",
     "migrate": "ts-node src/migrate.ts",
     "analyse": "ts-node src/analyse.ts",
-    "start": "npm run build && node dist/index.js",
+    "start": "node dist/index.js",
     "delete-msg": "ts-node src/scripts/delete-message.ts",
     "test": "jest",
     "prepare": "husky"
