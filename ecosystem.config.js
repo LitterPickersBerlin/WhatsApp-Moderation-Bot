@@ -1,9 +1,10 @@
 module.exports = {
   apps: [{
-    name: 'whatsapp-bot',
+    name: 'WhatsappMod',
     script: 'npm',
     args: 'run start',
-    watch: false,
-    autorestart: true
+    watch: true,
+    ignore_watch: ['node_modules', 'auth', 'data', '.git', 'logs'],
+    autorestart: true,
   }]
 }
