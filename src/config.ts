@@ -1,7 +1,7 @@
 // ─── Storage ──────────────────────────────────────────────────────────────────
 
 /** 'database' requires DATABASE_URL. 'filesystem' uses local JSON files — no
- *  dashboard, no activity tracking; alerting and spam removal only. */
+ *  no activity tracking; alerting and spam removal only. */
 export const STORAGE_MODE = (process.env.STORAGE_MODE ?? 'filesystem') as 'database' | 'filesystem'
 
 /** Directory for filesystem storage. Only used when STORAGE_MODE=filesystem. */

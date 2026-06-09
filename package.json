@@ -1,7 +1,7 @@
 {
   "name": "whatsapp-group-moderator",
   "version": "1.0.31",
-  "description": "Self-hosted WhatsApp group moderation bot with spam detection & keyword alerts",
+  "description": "Self-hosted WhatsApp group moderation bot with spam detection and keyword alerts",
   "main": "dist/index.js",
   "scripts": {
     "build": "tsc",

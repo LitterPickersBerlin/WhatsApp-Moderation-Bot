@@ -37,9 +37,13 @@ function makeNotifier(sock: WASocket) {
     )
 }
 
-function extractText(msg: WAMessage): string {
-  return msg.message?.conversation
-    || msg.message?.extendedTextMessage?.text
+export function extractText(msg: WAMessage): string {
+  const m = msg.message
+  return m?.conversation
+    || m?.extendedTextMessage?.text
+    || m?.imageMessage?.caption
+    || m?.videoMessage?.caption
+    || m?.documentMessage?.caption
     || ''
 }
 

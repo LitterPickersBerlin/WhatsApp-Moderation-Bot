@@ -1,6 +1,6 @@
 # LittrBot
 
-A WhatsApp bot for community group moderation. Automatically removes spam, lets members subscribe to keyword alerts, and provides an optional web dashboard.
+A WhatsApp bot for community group moderation. Automatically removes spam and lets members subscribe to keyword alerts.
 
 ## Features
 
@@ -68,17 +68,11 @@ Group JIDs look like `120363408042175763@g.us`. The easiest way to find them:
 
 ### 6. Run
 
-**With PM2 (recommended for the bot):**
+**With PM2 (recommended):**
 
 ```bash
 npm run build
 pm2 start ecosystem.config.js
-```
-
-**Dashboard only (Docker):**
-
-```bash
-docker compose up -d
 ```
 
 ---
@@ -87,7 +81,7 @@ docker compose up -d
 
 | Variable | Required | Default | Description |
 |---|---|---|---|
-| `BOT_NAME` | No | `WhatsApp Moderator` | Display name shown in dashboard and startup log |
+| `BOT_NAME` | No | `WhatsApp Moderator` | Display name shown in the startup log |
 | `BOT_CONFIG` | No | `./bot.config.json` | Path to your bot config JSON file |
 | `STORAGE_MODE` | No | `filesystem` | `filesystem` (default) or `database` |
 | `DATA_DIR` | No | `./data` | Directory for filesystem storage |
