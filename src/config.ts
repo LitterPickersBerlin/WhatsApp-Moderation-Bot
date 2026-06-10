@@ -20,6 +20,11 @@ export const NUMBERS_TO_NOTIFY: string[] = (process.env.NUMBERS_TO_NOTIFY ?? '')
 export const ADMIN_NUMBERS: string[] = (process.env.ADMIN_NUMBERS ?? '')
   .split(',').map(s => s.trim()).filter(Boolean)
 
+// ─── Debug ────────────────────────────────────────────────────────────────────
+
+/** Log extracted text and skipped messages for every group message. */
+export const LOG_MESSAGES = process.env.LOG_MESSAGES === 'true'
+
 // ─── Spam scoring ─────────────────────────────────────────────────────────────
 
 /** Score at or below which a user is removed from all groups in the network. */

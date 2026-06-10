@@ -1,5 +1,5 @@
 import { WAMessage, WASocket } from '@whiskeysockets/baileys'
-import { NUMBERS_TO_NOTIFY, BAN_THRESHOLD, POINTS_PER_MSG, ALERT_GROUPS } from '../config'
+import { NUMBERS_TO_NOTIFY, BAN_THRESHOLD, POINTS_PER_MSG, ALERT_GROUPS, LOG_MESSAGES } from '../config'
 import { isAdmin } from '../utils/helpers'
 import { checkMessage } from '../utils/classifier'
 import { addPoints, resetScore } from '../state'
@@ -187,10 +187,17 @@ export function registerGroupHandler(
       if (!senderJid) continue
       const senderNumber = senderJid.replace(/[^0-9]/g, '')
 
-      if (msg.message?.reactionMessage) continue
+      if (msg.message?.reactionMessage) {
+        if (LOG_MESSAGES) console.log(`⏭️  Skipped reaction from +${senderNumber}`)
+        continue
+      }
 
       const text = extractText(msg)
-      if (!text.trim()) continue
+      if (!text.trim()) {
+        if (LOG_MESSAGES) console.log(`⏭️  Skipped — no text extracted | type: ${Object.keys(msg.message ?? {}).join(', ')} | from: +${senderNumber}`)
+        continue
+      }
+      if (LOG_MESSAGES) console.log(`💬 Message text: "${text}" | from: +${senderNumber}`)
 
       const senderIsAdmin = isAdmin(senderNumber)
 
