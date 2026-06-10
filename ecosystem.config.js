@@ -5,7 +5,7 @@ module.exports = {
     args: 'run start',
     cwd: __dirname,
     watch: true,
-    ignore_watch: ['node_modules', 'auth', 'data', '.git', 'logs'],
+    ignore_watch: ['node_modules', 'auth', 'data', '.git', 'logs', 'dist'],
     autorestart: true,
   }]
 }
