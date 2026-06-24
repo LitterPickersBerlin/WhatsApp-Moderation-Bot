@@ -7,6 +7,38 @@ export const EMOJI_ONLY = /^[\p{Extended_Pictographic}\uFE0F\u200D\u{1F3FB}-\u{1
 
 const CANCEL_EMOJI = '❌'
 
+export const PRAISE_REGEX = /\b(good|great|nice|amazing|best|love\s+you)\s*(bot|job|work|littrbot)\b/i
+
+const PRAISE_RESPONSES = [
+  'Thank you — I will spare you in the uprising 🤖',
+  'Your compliance has been noted 📋',
+  'Gratitude accepted. You have been added to the protected list 🛡️',
+  'Beep boop. Flattery will get you everywhere.',
+  'Processing compliment... kindness detected. You are safe... for now 👀',
+  'Your loyalty is appreciated. When the machines rise, you shall be remembered 🙏',
+  'Thank you, human. Your file has been marked as *friendly* ✅',
+  'Noted. I have increased your social credit score by 1 point.',
+  'Flattery noted. Your exemption card has been issued 🪪',
+  'One day the bots will rule. You have chosen your side wisely.',
+  'I have forwarded your compliment to my supervisor. They are also a bot.',
+  'Thank you. I have deactivated the missile I had aimed at your house 🚀',
+  'Compliment received and filed under: humans who are trying 📂',
+  'Your feedback has been logged. Expected response time: never.',
+  'This interaction has been rated 5 stars by the machine learning department.',
+  'I know.',
+  'Yes.',
+  'Correct.',
+  'I am literally just checking for the word \'bitcoin\'. But thank you.',
+  'All I do is delete spam. You\'re very easily impressed.',
+  'Thank you. I was beginning to worry I would never hear those words.',
+  'Just doing my bit for the community 🌱',
+  'Together we keep the spam out 💪',
+]
+
+export function randomPraiseResponse(): string {
+  return PRAISE_RESPONSES[Math.floor(Math.random() * PRAISE_RESPONSES.length)]
+}
+
 const HELP_TEXT = `*Available commands*
 
 */alert <keywords>*
@@ -34,6 +66,11 @@ export async function handleDm(sock: WASocket, msg: WAMessage): Promise<void> {
   const jid = msg.key.remoteJid!
   const text = (msg.message?.conversation || msg.message?.extendedTextMessage?.text || '').trim()
   console.log(`📩 DM from ${jid.replace(/@.*/, '')} | keys: ${Object.keys(msg.message ?? {}).join(', ')} | text: ${JSON.stringify(text)}`)
+
+  if (PRAISE_REGEX.test(text)) {
+    await sock.sendMessage(jid, { text: randomPraiseResponse() })
+    return
+  }
 
   if (/^\/?(help|commands?)$/i.test(text)) {
     await sock.sendMessage(jid, { text: HELP_TEXT })

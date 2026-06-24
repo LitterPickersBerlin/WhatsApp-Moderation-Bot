@@ -1,10 +1,21 @@
 import { WAMessage, WASocket } from '@whiskeysockets/baileys'
 import { NUMBERS_TO_NOTIFY, BAN_THRESHOLD, POINTS_PER_MSG, ALERT_GROUPS, LOG_MESSAGES } from '../config'
+import { PRAISE_REGEX, randomPraiseResponse } from './dm'
 import { isAdmin } from '../utils/helpers'
 import { checkMessage } from '../utils/classifier'
 import { addPoints, resetScore } from '../state'
 import { getNetworkPeers } from '../utils/networks'
 import { storage } from '../storage'
+
+// ─── Last bot action timestamp (per group) ───────────────────────────────────
+
+const lastBotActionAt = new Map<string, number>()
+
+function recordBotAction(groupJid: string) {
+  lastBotActionAt.set(groupJid, Date.now())
+}
+
+const BOT_ACTION_WINDOW_MS = 5 * 60 * 1000
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
@@ -133,6 +144,7 @@ async function handleSpamBan(
     `\n\n_To manually delete: \`${jid}\` \`${msg.key.id}\` \`${senderJid}\`_`
   )
 
+  recordBotAction(jid)
   await resetScore(jid, senderJid)
 }
 
@@ -199,6 +211,14 @@ export function registerGroupHandler(
       }
       if (LOG_MESSAGES) console.log(`💬 Message text: "${text}" | from: +${senderNumber}`)
 
+      if (PRAISE_REGEX.test(text)) {
+        const lastAction = lastBotActionAt.get(jid)
+        if (lastAction && Date.now() - lastAction < BOT_ACTION_WINDOW_MS) {
+          await sock.sendMessage(jid, { text: randomPraiseResponse() }, { quoted: msg })
+        }
+        continue
+      }
+
       const senderIsAdmin = isAdmin(senderNumber)
 
       // ── Fire keyword subscription alerts ─────────────────────────────────
@@ -244,8 +264,10 @@ export function registerGroupHandler(
         if (member.score <= BAN_THRESHOLD) {
           await handleSpamBan(sock, msg, jid, senderJid, senderNumber, matchedKeywords, member.score, notify)
         } else if (senderIsAdmin) {
+          recordBotAction(jid)
           await notify(`🛡️ *Admin flagged for spam keywords (no action taken)*\n\n*Group:* ${jid}\n*Admin:* +${senderNumber}\n*Keywords:* ${matchedKeywords.join(', ')}\n*Message:* ${text}`)
         } else {
+          recordBotAction(jid)
           await notify(`⚠️ *Spam warning*\n\n*Group:* ${jid}\n*From:* +${senderNumber}\n*Score:* ${member.score} (ban at ${BAN_THRESHOLD})\n*Keywords:* ${matchedKeywords.join(', ')}\n*Message:* ${text}`)
         }
       }
