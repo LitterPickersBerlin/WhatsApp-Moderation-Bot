@@ -65,8 +65,30 @@ const pendingAlerts = new Map<string, { contactJid: string; keywords: string[] }
 
 // ─── Admin helpers ────────────────────────────────────────────────────────────
 
-function isAdminJid(jid: string): boolean {
-  return ADMIN_NUMBERS.includes(jid.replace(/[^0-9]/g, ''))
+// Lazy cache of resolved admin JIDs — populated on first use by asking WhatsApp
+// to resolve phone numbers to their current JIDs (handles LID privacy accounts).
+let adminJidCache: Set<string> | null = null
+
+async function getAdminJids(sock: WASocket): Promise<Set<string>> {
+  if (adminJidCache) return adminJidCache
+  const nums = [...new Set([...NUMBERS_TO_NOTIFY, ...ADMIN_NUMBERS])]
+  // Seed with phone-based JIDs as a fallback for non-LID accounts
+  adminJidCache = new Set(nums.map(n => `${n}@s.whatsapp.net`))
+  try {
+    const results = await sock.onWhatsApp(...nums)
+    for (const r of results ?? []) {
+      if (r.exists) adminJidCache.add(r.jid)
+    }
+    console.log(`🔑 Resolved ${adminJidCache.size} admin JID(s): ${[...adminJidCache].join(', ')}`)
+  } catch (err) {
+    console.error('⚠️  Failed to resolve admin JIDs via onWhatsApp:', (err as Error).message)
+  }
+  return adminJidCache
+}
+
+async function isAdminJid(sock: WASocket, jid: string): Promise<boolean> {
+  const jids = await getAdminJids(sock)
+  return jids.has(jid)
 }
 
 async function getOrderedGroups(): Promise<Array<{ jid: string; name: string }>> {
@@ -109,7 +131,7 @@ export async function handleDm(sock: WASocket, msg: WAMessage): Promise<void> {
   const text = (msg.message?.conversation || msg.message?.extendedTextMessage?.text || '').trim()
   console.log(`📩 DM from ${jid.replace(/@.*/, '')} | keys: ${Object.keys(msg.message ?? {}).join(', ')} | text: ${JSON.stringify(text)}`)
 
-  if (isAdminJid(jid)) {
+  if (await isAdminJid(sock, jid)) {
     if (/^\/groups?$/i.test(text)) {
       await handleGroupsCommand(sock, jid)
       return
