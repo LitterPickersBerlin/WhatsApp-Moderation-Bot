@@ -20,6 +20,11 @@ export const NUMBERS_TO_NOTIFY: string[] = (process.env.NUMBERS_TO_NOTIFY ?? '')
 export const ADMIN_NUMBERS: string[] = (process.env.ADMIN_NUMBERS ?? '')
   .split(',').map(s => s.trim()).filter(Boolean)
 
+/** Full WhatsApp JIDs for admins using LID privacy mode (e.g. 13520708067482@lid).
+ *  Find your JID in PM2 logs — look for "DM from <jid>" after messaging the bot. */
+export const ADMIN_JIDS: string[] = (process.env.ADMIN_JIDS ?? '')
+  .split(',').map(s => s.trim()).filter(Boolean)
+
 // ─── Debug ────────────────────────────────────────────────────────────────────
 
 /** Log extracted text and skipped messages for every group message. */

@@ -1,6 +1,6 @@
 import { WAMessage, WASocket } from '@whiskeysockets/baileys'
 import { storage } from '../storage'
-import { ADMIN_NUMBERS, ALERT_GROUPS, EMOJI_TO_ALERT_GROUP, NUMBERS_TO_NOTIFY } from '../config'
+import { ADMIN_JIDS, ADMIN_NUMBERS, ALERT_GROUPS, EMOJI_TO_ALERT_GROUP, NUMBERS_TO_NOTIFY } from '../config'
 import { getAllObserved } from '../utils/networks'
 
 // Matches messages that are purely emoji (including variation selectors, ZWJ sequences, skin tones)
@@ -87,6 +87,7 @@ async function getAdminJids(sock: WASocket): Promise<Set<string>> {
 }
 
 async function isAdminJid(sock: WASocket, jid: string): Promise<boolean> {
+  if (ADMIN_JIDS.includes(jid)) return true
   const jids = await getAdminJids(sock)
   return jids.has(jid)
 }
@@ -129,7 +130,7 @@ async function handleSayCommand(sock: WASocket, jid: string, text: string): Prom
 export async function handleDm(sock: WASocket, msg: WAMessage): Promise<void> {
   const jid = msg.key.remoteJid!
   const text = (msg.message?.conversation || msg.message?.extendedTextMessage?.text || '').trim()
-  console.log(`📩 DM from ${jid.replace(/@.*/, '')} | keys: ${Object.keys(msg.message ?? {}).join(', ')} | text: ${JSON.stringify(text)}`)
+  console.log(`📩 DM from ${jid} | keys: ${Object.keys(msg.message ?? {}).join(', ')} | text: ${JSON.stringify(text)}`)
 
   if (await isAdminJid(sock, jid)) {
     if (/^\/groups?$/i.test(text)) {
