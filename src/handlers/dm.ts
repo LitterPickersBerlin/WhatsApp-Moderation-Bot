@@ -1,6 +1,7 @@
 import { WAMessage, WASocket } from '@whiskeysockets/baileys'
 import { storage } from '../storage'
-import { ALERT_GROUPS, EMOJI_TO_ALERT_GROUP, NUMBERS_TO_NOTIFY } from '../config'
+import { ADMIN_NUMBERS, ALERT_GROUPS, EMOJI_TO_ALERT_GROUP, NUMBERS_TO_NOTIFY } from '../config'
+import { getAllObserved } from '../utils/networks'
 
 // Matches messages that are purely emoji (including variation selectors, ZWJ sequences, skin tones)
 export const EMOJI_ONLY = /^[\p{Extended_Pictographic}\uFE0F\u200D\u{1F3FB}-\u{1F3FF}\s]+$/u
@@ -62,10 +63,62 @@ const GROUP_LIST = ALERT_GROUPS
 // userJid → pending keywords awaiting group selection
 const pendingAlerts = new Map<string, { contactJid: string; keywords: string[] }>()
 
+// ─── Admin helpers ────────────────────────────────────────────────────────────
+
+function isAdminJid(jid: string): boolean {
+  return ADMIN_NUMBERS.includes(jid.replace(/[^0-9]/g, ''))
+}
+
+async function getOrderedGroups(): Promise<Array<{ jid: string; name: string }>> {
+  const jids = [...getAllObserved()]
+  const names = await storage.getGroupNames(jids)
+  return jids
+    .map(jid => ({ jid, name: names.get(jid) ?? jid }))
+    .sort((a, b) => a.name.localeCompare(b.name))
+}
+
+async function handleGroupsCommand(sock: WASocket, jid: string): Promise<void> {
+  const groups = await getOrderedGroups()
+  const list = groups.map((g, i) => `${i + 1}. ${g.name}`).join('\n')
+  await sock.sendMessage(jid, {
+    text: `*Groups (${groups.length}):*\n\n${list}\n\nUse /say <number> <message> to send as LittrBot.`,
+  })
+}
+
+async function handleSayCommand(sock: WASocket, jid: string, text: string): Promise<void> {
+  const match = text.match(/^\/say\s+(\d+)\s+([\s\S]+)$/i)
+  if (!match) {
+    await sock.sendMessage(jid, { text: 'Usage: /say <group number> <message>\n\nUse /groups to see group numbers.' })
+    return
+  }
+  const num = parseInt(match[1], 10)
+  const message = match[2].trim()
+  const groups = await getOrderedGroups()
+  const group = groups[num - 1]
+  if (!group) {
+    await sock.sendMessage(jid, { text: `No group #${num}. Use /groups to see the list.` })
+    return
+  }
+  await sock.sendMessage(group.jid, { text: message })
+  await sock.sendMessage(jid, { text: `✅ Sent to *${group.name}*` })
+  console.log(`📢 Admin ${jid.replace(/@.*/, '')} sent message to ${group.name}`)
+}
+
 export async function handleDm(sock: WASocket, msg: WAMessage): Promise<void> {
   const jid = msg.key.remoteJid!
   const text = (msg.message?.conversation || msg.message?.extendedTextMessage?.text || '').trim()
   console.log(`📩 DM from ${jid.replace(/@.*/, '')} | keys: ${Object.keys(msg.message ?? {}).join(', ')} | text: ${JSON.stringify(text)}`)
+
+  if (isAdminJid(jid)) {
+    if (/^\/groups?$/i.test(text)) {
+      await handleGroupsCommand(sock, jid)
+      return
+    }
+    if (/^\/say\s+/i.test(text)) {
+      await handleSayCommand(sock, jid, text)
+      return
+    }
+  }
 
   if (PRAISE_REGEX.test(text)) {
     await sock.sendMessage(jid, { text: randomPraiseResponse() })
