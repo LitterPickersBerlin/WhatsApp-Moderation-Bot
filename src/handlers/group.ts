@@ -1,5 +1,5 @@
 import { WAMessage, WASocket } from '@whiskeysockets/baileys'
-import { NUMBERS_TO_NOTIFY, BAN_THRESHOLD, POINTS_PER_MSG, ALERT_GROUPS, LOG_MESSAGES } from '../config'
+import { NUMBERS_TO_NOTIFY, BAN_THRESHOLD, POINTS_PER_MSG, ALERT_GROUPS, LOG_MESSAGES, ADMIN_ONLY_MODE } from '../config'
 import { PRAISE_REGEX, randomPraiseResponse } from './dm'
 import { isAdmin } from '../utils/helpers'
 import { checkMessage } from '../utils/classifier'
@@ -65,6 +65,7 @@ async function checkAndFireSubscriptions(
   senderJid: string,
   text: string,
 ) {
+  if (ADMIN_ONLY_MODE) return
   const subscriptions = await storage.getActiveSubscriptions(jid)
   for (const sub of subscriptions) {
     if (sub.contactJid === senderJid) continue
@@ -213,7 +214,7 @@ export function registerGroupHandler(
 
       if (PRAISE_REGEX.test(text)) {
         const lastAction = lastBotActionAt.get(jid)
-        if (lastAction && Date.now() - lastAction < BOT_ACTION_WINDOW_MS) {
+        if (!ADMIN_ONLY_MODE && lastAction && Date.now() - lastAction < BOT_ACTION_WINDOW_MS) {
           await sock.sendMessage(jid, { text: randomPraiseResponse() }, { quoted: msg })
         }
         continue

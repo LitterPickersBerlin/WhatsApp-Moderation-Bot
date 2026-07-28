@@ -30,6 +30,17 @@ export const ADMIN_JIDS: string[] = (process.env.ADMIN_JIDS ?? '')
 /** Log extracted text and skipped messages for every group message. */
 export const LOG_MESSAGES = process.env.LOG_MESSAGES === 'true'
 
+/** Reply with help text when a DM doesn't match any command.
+ *  Set REPLY_TO_UNRECOGNISED=false to silently ignore instead. */
+export const REPLY_TO_UNRECOGNISED = process.env.REPLY_TO_UNRECOGNISED !== 'false'
+
+/** Only respond to admin commands (/groups, /say) from admins. Disables all
+ *  other user-facing replies: praise responses (DM and group), help text,
+ *  /alert and /subs, reaction handling, and keyword alert notifications.
+ *  Spam moderation (delete/kick) and admin notifications still run.
+ *  Use when running the bot on a personal WhatsApp account. */
+export const ADMIN_ONLY_MODE = process.env.ADMIN_ONLY_MODE === 'true'
+
 // ─── Spam scoring ─────────────────────────────────────────────────────────────
 
 /** Score at or below which a user is removed from all groups in the network. */
