@@ -1,6 +1,6 @@
 import { WAMessage, WASocket } from '@whiskeysockets/baileys'
 import { storage } from '../storage'
-import { ADMIN_JIDS, ADMIN_NUMBERS, ALERT_GROUPS, EMOJI_TO_ALERT_GROUP, NUMBERS_TO_NOTIFY } from '../config'
+import { ADMIN_JIDS, ADMIN_NUMBERS, ADMIN_ONLY_MODE, ALERT_GROUPS, EMOJI_TO_ALERT_GROUP, NUMBERS_TO_NOTIFY, REPLY_TO_UNRECOGNISED } from '../config'
 import { getAllObserved } from '../utils/networks'
 
 // Matches messages that are purely emoji (including variation selectors, ZWJ sequences, skin tones)
@@ -143,6 +143,11 @@ export async function handleDm(sock: WASocket, msg: WAMessage): Promise<void> {
     }
   }
 
+  if (ADMIN_ONLY_MODE) {
+    if (text) console.log(`🤫 Admin-only mode: ignoring DM from ${jid.replace(/@.*/, '')}`)
+    return
+  }
+
   if (PRAISE_REGEX.test(text)) {
     await sock.sendMessage(jid, { text: randomPraiseResponse() })
     return
@@ -164,6 +169,10 @@ export async function handleDm(sock: WASocket, msg: WAMessage): Promise<void> {
   }
 
   if (text.length > 0) {
+    if (!REPLY_TO_UNRECOGNISED) {
+      console.log(`🤫 Ignoring unrecognised DM from ${jid.replace(/@.*/, '')}`)
+      return
+    }
     await sock.sendMessage(jid, {
       text: `Sorry, I don't recognise that command.\n\n${HELP_TEXT}`,
     })
@@ -176,6 +185,7 @@ export async function handleDmReaction(
   replyJid: string,
   emoji: string,
 ): Promise<void> {
+  if (ADMIN_ONLY_MODE) return
   console.log(`🔍 DM reaction | emoji: ${emoji} | lookupJid: ${lookupJid.replace(/@.*/, '')}`)
 
   if (emoji === CANCEL_EMOJI) {
