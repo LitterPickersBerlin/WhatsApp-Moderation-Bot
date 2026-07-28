@@ -10,6 +10,7 @@
     "analyse": "ts-node src/analyse.ts",
     "start": "node dist/index.js",
     "delete-msg": "ts-node src/scripts/delete-message.ts",
+    "export-fs": "ts-node src/scripts/export-db-to-fs.ts",
     "test": "jest",
     "prepare": "husky"
   },
