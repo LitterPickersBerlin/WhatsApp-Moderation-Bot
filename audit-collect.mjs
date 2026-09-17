@@ -72,13 +72,30 @@ function findAuthDir() {
 const baileys = await loadBaileys()
 const makeWASocket =
   baileys.default?.default ?? baileys.default ?? baileys.makeWASocket
-const { useMultiFileAuthState, DisconnectReason } = baileys
+const { useMultiFileAuthState, DisconnectReason, fetchLatestBaileysVersion } = baileys
 
 const authDir = findAuthDir()
 console.log(`auth state: ${authDir}`)
 const { state, saveCreds } = await useMultiFileAuthState(authDir)
 
+// Only ever borrow the bot's existing paired session — never start a new pairing.
+if (!state.creds?.me?.id) {
+  console.error(`${authDir} holds no paired session — refusing to connect (would start a fresh pairing).`)
+  process.exit(1)
+}
+
+// Same as the bot (src/bot.ts): WhatsApp rejects the stale WA Web version baked
+// into the installed Baileys with a 405 at login, so announce the current one.
+// This fetches from GitHub, not WhatsApp, and does not touch the auth state.
+const { version, isLatest } = await fetchLatestBaileysVersion()
+if (!isLatest) {
+  console.error('Could not fetch the current WA Web version — not connecting with a stale one (405). Retry shortly.')
+  process.exit(1)
+}
+console.log(`WA Web version: ${version.join('.')}`)
+
 const sock = makeWASocket({
+  version,
   auth: state,
   printQRInTerminal: false,
   syncFullHistory: false,
