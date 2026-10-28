@@ -5,6 +5,7 @@ import { isAdmin } from '../utils/helpers'
 import { checkMessage } from '../utils/classifier'
 import { addPoints, resetScore } from '../state'
 import { getNetworkPeers } from '../utils/networks'
+import { extractNativeInvite, findWhatsappLinks, resolveForeignLinks, unwrapMessageContent } from '../utils/whatsappLinks'
 import { storage } from '../storage'
 
 // ─── Last bot action timestamp (per group) ───────────────────────────────────
@@ -49,12 +50,14 @@ function makeNotifier(sock: WASocket) {
 }
 
 export function extractText(msg: WAMessage): string {
-  const m = msg.message
+  // Unwrap ephemeral / view-once / edited wrappers so their contents are seen
+  const m = unwrapMessageContent(msg.message)
   return m?.conversation
     || m?.extendedTextMessage?.text
     || m?.imageMessage?.caption
     || m?.videoMessage?.caption
     || m?.documentMessage?.caption
+    || m?.groupInviteMessage?.caption
     || ''
 }
 
@@ -206,7 +209,8 @@ export function registerGroupHandler(
       }
 
       const text = extractText(msg)
-      if (!text.trim()) {
+      const nativeInvite = extractNativeInvite(msg.message)
+      if (!text.trim() && !nativeInvite) {
         if (LOG_MESSAGES) console.log(`⏭️  Skipped — no text extracted | type: ${Object.keys(msg.message ?? {}).join(', ')} | from: +${senderNumber}`)
         continue
       }
@@ -236,22 +240,30 @@ export function registerGroupHandler(
         continue
       }
 
-      let matchedKeywords = checkMessage(text)
+      const matchedKeywords = checkMessage(text)
 
-      // If text alone didn't match, check the subject of any WhatsApp invite links
-      if (matchedKeywords.length === 0) {
-        const inviteCodes = [...text.matchAll(/https?:\/\/chat\.whatsapp\.com\/([A-Za-z0-9]+)/g)].map(([, c]) => c)
-        for (const code of inviteCodes) {
-          try {
-            const info = await sock.groupGetInviteInfo(code)
-            const nameMatches = checkMessage(info.subject ?? '')
-            if (nameMatches.length > 0) {
-              matchedKeywords = nameMatches
-              console.log(`🔗 Invite link group name "${info.subject}" matched keywords: [${nameMatches.join(', ')}]`)
-              break
+      // ── WhatsApp link detection ────────────────────────────────────────────
+      // Flags every WhatsApp link format — group invites (incl. native invite
+      // cards), channels, wa.me / api.whatsapp.com click-to-chat, call links,
+      // wa.link shorteners and whatsapp:// deeplinks. Links into the bot's own
+      // GROUP_NETWORKS (e.g. the alertGroups invite links) are allowed.
+      try {
+        const linkHits = findWhatsappLinks(text)
+        if (nativeInvite) linkHits.push(nativeInvite)
+        if (linkHits.length > 0) {
+          const foreign = await resolveForeignLinks(linkHits, code => sock.groupGetInviteInfo(code))
+          for (const hit of foreign) {
+            matchedKeywords.push(hit.label)
+            // Preserve the old behaviour of also scoring spam keywords found
+            // in the target group's name ("Crypto Signals" etc.)
+            for (const kw of checkMessage(hit.groupName ?? '')) {
+              if (!matchedKeywords.includes(kw)) matchedKeywords.push(kw)
             }
-          } catch { /* expired or invalid invite code */ }
+            console.log(`🔗 WhatsApp link flagged (${hit.kind}): ${hit.raw}`)
+          }
         }
+      } catch (err) {
+        console.error('❌ WhatsApp link check failed:', (err as Error).message)
       }
 
       if (matchedKeywords.length === 0) {

@@ -5,6 +5,7 @@ A WhatsApp bot for community group moderation. Automatically removes spam and le
 ## Features
 
 - **Spam detection & auto-removal** — scores messages against a configurable keyword list. Users who hit the ban threshold are removed from the group (and any linked groups in the same network).
+- **WhatsApp link detection** — group invite links (including native invite cards), channel links, wa.me / click-to-chat, call links and wa.link shorteners count as spam signals, with common obfuscation (zero-width characters, spaced-out dots) undone first. Invites that point at groups in your own `groupNetworks` are recognised as your own and allowed.
 - **Keyword alerts** — members DM the bot to subscribe to keywords. When a match is posted in a monitored group, the member gets a DM with a link back.
 - **Group networks** — groups can be linked so a ban in one propagates to all others in the network.
 - **Two storage modes** — use a PostgreSQL database for persistent tracking, or the filesystem for a zero-dependency setup.
